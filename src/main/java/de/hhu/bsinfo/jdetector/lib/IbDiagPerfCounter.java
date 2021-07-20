@@ -20,7 +20,7 @@ import de.hhu.bsinfo.jdetector.lib.exception.IbFileException;
 
 /**
  * Reads the diagnostic counters of a local device from
- * "/sys/class/infiniband/<device name>/ports/<port number>/hw_counters/".
+ * "/sys/class/infiniband/'device name'/ports/'port_counter'/hw_counters/".
  *
  * @author Fabian Ruhland, Fabian.Ruhland@hhu.de
  */

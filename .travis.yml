@@ -1,5 +1,6 @@
-language: java
+os: linux
 dist: xenial
+language: java
 
 addons:
   apt:
@@ -12,25 +13,24 @@ addons:
 
 stages:
   - name: build
-  - name: snapshot
-    if: branch = development AND type = push
   - name: release
-    if: branch = master AND type = push
+    if: tag IS present
 
 jobs:
   include:
     - stage: build
-      script: ./gradlew cmakeBuild jar
-    - stage: snapshot
-      script: ./gradlew artifactoryPublish -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_KEY} -Dbuild.number=${TRAVIS_BUILD_NUMBER}
+      script:
+        - ./gradlew cmakeBuild build
     - stage: release
-      script: ./gradlew bintrayUpload -Drelease=true -PbuildVariant=release -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_KEY} -Dbuild.number=${TRAVIS_BUILD_NUMBER}
-
-before_deploy: ./gradlew cmakeBuild jar -Drelease=true
+      script:
+        - ./gradlew clean
+        - ./gradlew publish -Dgpr.user=${GPR_USER} -Dgpr.token=${GPR_TOKEN} -Drelease=true
+        - ./gradlew sourcesJar javadocJar -Drelease=true
+        - export PUBLISH=true
 
 deploy:
   provider: releases
-  api_key: ${ACCESS_TOKEN}
+  token: ${ACCESS_TOKEN}
   file: build/libs/jdetector-${TRAVIS_TAG}.jar
   skip_cleanup: true
   overwrite: true
@@ -38,3 +38,4 @@ deploy:
     repo: hhu-bsinfo/jdetector
     branch: master
     tags: true
+    condition: ${PUBLISH} = true

@@ -2,18 +2,15 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.freudasoft.gradle-cmake-plugin' version '0.0.4'
-    id 'com.jfrog.bintray' version '1.8.4'
-    id "com.jfrog.artifactory" version "4.14.1"
     id 'de.fuerstenau.buildconfig' version '1.1.8'
     id 'com.palantir.git-version' version '0.12.2'
 }
 
 group = 'de.hhu.bsinfo'
-version version = '0.1.0' + (Boolean.valueOf(System.getProperty('release')) ? '' : '-SNAPSHOT')
+version = '0.1.1' + (Boolean.valueOf(System.getProperty('release')) ? '' : '-SNAPSHOT')
 
 repositories {
     mavenCentral()
-    jcenter()
 
     maven {
         url "https://plugins.gradle.org/m2/"
@@ -26,20 +23,19 @@ compileJava {
     options.encoding = 'UTF-8'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+task sourceJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
 javadoc.failOnError = false
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
 
 cmake {
@@ -52,12 +48,12 @@ cmake {
 }
 
 artifacts {
-    archives sourcesJar
+    archives sourceJar
     archives javadocJar
 }
 
 wrapper {
-    gradleVersion = "6.2.2"
+    gradleVersion = "7.2"
 }
 
 buildConfig {
@@ -76,6 +72,9 @@ buildConfig {
     buildConfigField 'String', 'GIT_BRANCH', gitVersion.branchName
 }
 
+// Workaround for 'Configuration <compile> not found', caused by de.fuerstenau.buildconfig with Gradle 7+
+configurations {
+    create("compile")
+}
+
 apply from: 'publish.gradle'
-apply from: 'bintray.gradle'
-apply from: 'artifactory.gradle'
